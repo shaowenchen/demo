@@ -1,0 +1,38 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: remote-build-pipelinerun-1
+spec:
+  pipelineRef:
+    name: remote-build-pipeline
+  workspaces:
+  - name: shared-data
+    volumeClaimTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 10Gi
+  params:
+  - name: repo-url
+    value: https://github.com/shaowenchen/terraform-provider-qingcloud.git
+  - name: branch-name
+    value: master
+  - name: subdirectory
+    value: terraform-provider-qingcloud-001
+  - name: remote-ip
+    value: 10.10.10.10
+  - name: remote-port
+    value: "22"
+  - name: remote-username
+    value: root
+  - name: remote-password
+    value: Pass_word
+  - name: remote-workspace
+    value: ~/workspaces/terraform-provider-qingcloud-001
+  - name: remote-script
+    value: |
+        cd ~/workspaces/terraform-provider-qingcloud-001
+        make

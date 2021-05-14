@@ -1,0 +1,56 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: remote-build-pipeline
+spec:
+  params:
+  - name: repo-url
+    type: string
+  - name: branch-name
+    type: string
+  - name: remote-ip
+    type: string
+  - name: remote-port
+    type: string
+  - name: remote-username
+    type: string
+  - name: remote-password
+    type: string
+  - name: remote-workspace
+    type: string
+  - name: remote-script
+    type: string
+  workspaces:
+  - name: shared-data
+  tasks:
+  - name: fetch-repo
+    taskRef:
+      name: git-clone
+    workspaces:
+    - name: output
+      workspace: shared-data
+    params:
+    - name: url
+      value: $(params.repo-url)
+    - name: revision
+      value: $(params.branch-name)
+  - name: remote-build
+    taskRef:
+      name: remote-shell
+    runAfter: ["fetch-repo"]
+    workspaces:
+    - name: source
+      workspace: shared-data
+    params:
+    - name: remote-ip
+      value: $(params.remote-ip)
+    - name: remote-port
+      value: $(params.remote-port)
+    - name: remote-username
+      value: $(params.remote-username)
+    - name: remote-password
+      value: $(params.remote-password)
+    - name: remote-workspace
+      value: $(params.remote-workspace)
+    - name: remote-script
+      value: $(params.remote-script)

@@ -1,0 +1,42 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: remote-shell
+  labels:
+    app.kubernetes.io/version: "0.1"
+  annotations:
+    tekton.dev/pipelines.minVersion: "0.12.1"
+    tekton.dev/tags: git
+    tekton.dev/displayName: "remote shell"
+spec:
+  description: >-
+    This task can be used to run shell in remote machine
+  workspaces:
+  - name: source
+  params:
+  - name: remote-ip
+    type: string
+  - name: remote-port
+    type: string
+  - name: remote-username
+    type: string
+  - name: remote-password
+    type: string
+  - name: remote-workspace
+    type: string
+  - name: remote-script
+    type: string
+  steps:
+  - name: remote-shell
+    image: shaowenchen/rsync-sshpass:v1
+    workingDir: $(workspaces.source.path)
+    script: |
+      ls
+      sshpass  -p "$(params.remote-password)" ssh -o StrictHostKeyChecking=no "$(params.remote-username)"@"$(params.remote-ip)" -p "$(params.remote-port)" "mkdir -p $(params.remote-workspace)"
+
+      rsync -ratlz --progress --rsh="sshpass -p $(params.remote-password) ssh -o StrictHostKeyChecking=no -l $(params.remote-username)" ./ "$(params.remote-ip)":"$(params.remote-workspace)"
+
+      sshpass  -p "$(params.remote-password)" ssh -o StrictHostKeyChecking=no "$(params.remote-username)"@"$(params.remote-ip)" -p "$(params.remote-port)" "$(params.remote-script)"
+
+      rsync -ratlz --progress --rsh="sshpass -p $(params.remote-password) ssh -o StrictHostKeyChecking=no -l $(params.remote-username)" "$(params.remote-ip)":"$(params.remote-workspace)"/ .
