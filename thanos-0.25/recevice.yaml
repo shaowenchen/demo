@@ -10,7 +10,7 @@ data:
         "hashring": "soft-tenants",
         "endpoints":
         [
-          "thanos-receive-0.thanos-receive.kube-system.svc.cluster.local:10901"
+          "thanos-receive-0.thanos-receive.thanos.svc.cluster.local:10901"
         ]
       }
     ]
@@ -39,7 +39,7 @@ spec:
     targetPort: 10901
   selector:
     kubernetes.io/name: thanos-receive
-  clusterIP: None
+  type: NodePort
 ---
 
 apiVersion: apps/v1
@@ -66,6 +66,7 @@ spec:
         - --grpc-address=0.0.0.0:10901
         - --http-address=0.0.0.0:10902
         - --remote-write.address=0.0.0.0:19291
+        - --receive.replication-factor=1 
         - --objstore.config-file=/etc/objectstorage.yaml
         - --tsdb.path=/var/receive
         - --tsdb.retention=12h
@@ -78,7 +79,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.name
-        image: thanosio/thanos:v0.25.0
+        image: thanosio/thanos:v0.25.2
         livenessProbe:
           failureThreshold: 4
           httpGet:

@@ -60,8 +60,8 @@ spec:
         - --store=dnssrv+_grpc._tcp.prometheus-headless.thanos.svc.cluster.local
         - --store=dnssrv+_grpc._tcp.thanos-rule.thanos.svc.cluster.local
         - --store=dnssrv+_grpc._tcp.thanos-store.thanos.svc.cluster.local
-        - --store=0.0.0.0:30901
-        image: thanosio/thanos:v0.25.0
+        - --store=dnssrv+_grpc._tcp.thanos-receive.thanos.svc.cluster.local
+        image: thanosio/thanos:v0.25.2
         livenessProbe:
           failureThreshold: 4
           httpGet:

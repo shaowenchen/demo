@@ -43,7 +43,7 @@ spec:
         - --retention.resolution-raw=90d
         - --retention.resolution-5m=180d
         - --retention.resolution-1h=360d
-        image: thanosio/thanos:v0.25.0
+        image: thanosio/thanos:v0.25.2
         livenessProbe:
           failureThreshold: 4
           httpGet:
