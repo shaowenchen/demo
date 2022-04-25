@@ -54,6 +54,13 @@ spec:
             fieldRef:
               fieldPath: metadata.name
         image: thanosio/thanos:v0.25.2
+        resources:
+          requests:
+            memory: "2048Mi"
+            cpu: "1000m"
+          limits:
+            memory: "2048Mi"
+            cpu: "1000m"
         livenessProbe:
           failureThreshold: 24
           httpGet:

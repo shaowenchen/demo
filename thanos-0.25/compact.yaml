@@ -44,6 +44,13 @@ spec:
         - --retention.resolution-5m=180d
         - --retention.resolution-1h=360d
         image: thanosio/thanos:v0.25.2
+        resources:
+          requests:
+            memory: "2048Mi"
+            cpu: "1000m"
+          limits:
+            memory: "2048Mi"
+            cpu: "1000m"
         livenessProbe:
           failureThreshold: 4
           httpGet:
