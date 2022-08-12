@@ -1,0 +1,30 @@
+FROM node:lts-alpine as builder
+
+ARG BUCKETNAME
+ENV BUCKETNAME=$BUCKETNAME
+
+RUN apk add python3 && ln -sf python3 /usr/bin/python && apk add py3-pip
+RUN wget https://sourceforge.net/projects/s3tools/files/s3cmd/2.2.0/s3cmd-2.2.0.tar.gz \
+    && mkdir -p /usr/local/s3cmd && tar -zxf s3cmd-2.2.0.tar.gz -C /usr/local/s3cmd \
+    && ln -s /usr/local/s3cmd/s3cmd-2.2.0/s3cmd /usr/bin/s3cmd && pip3 install python-dateutil
+WORKDIR /
+
+# Get Cache
+COPY .s3cfg /root/
+RUN s3cmd get s3://$BUCKETNAME/node_modules.tar.gz && tar xf node_modules.tar.gz || exit 0
+RUN s3cmd get s3://$BUCKETNAME/npm.tar.gz && tar xf npm.tar.gz || exit 0
+COPY . .
+RUN npm install
+RUN npm run build
+
+# Uploda Cache
+RUN s3cmd del s3://$BUCKETNAME/node_modules.tar.gz || exit 0
+RUN s3cmd del s3://$BUCKETNAME/npm.tar.gz || exit 0
+RUN tar cvfz node_modules.tar.gz node_modules
+RUN tar cvfz npm.tar.gz ~/.npm
+RUN s3cmd put node_modules.tar.gz s3://$BUCKETNAME/
+RUN s3cmd put npm.tar.gz s3://$BUCKETNAME/
+
+FROM nginx:alpine
+COPY --from=builder /dist/ /usr/share/nginx/html/
+EXPOSE 80

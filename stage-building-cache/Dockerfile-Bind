@@ -1,0 +1,11 @@
+FROM node:lts-alpine as builder
+WORKDIR /
+COPY . .
+RUN --mount=type=bind,from=shaowenchen/hello-world:cache,source=/node_modules,target=/node_modules \
+--mount=type=bind,from=shaowenchen/hello-world:cache,source=/root/.npm,target=/root/.npm npm install
+RUN --mount=type=bind,from=shaowenchen/hello-world:cache,source=/node_modules,target=/node_modules \
+--mount=type=bind,from=shaowenchen/hello-world:cache,source=/root/.npm,target=/root/.npm npm run build
+
+FROM nginx:alpine
+COPY --from=builder /dist/ /usr/share/nginx/html/
+EXPOSE 80

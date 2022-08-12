@@ -1,0 +1,5 @@
+FROM node:lts-alpine as builder
+WORKDIR /
+COPY . .
+RUN npm install
+RUN npm run build
