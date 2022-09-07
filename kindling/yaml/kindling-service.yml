@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: kindling
+  name: kindling-agent
+  labels:
+    k8s-app: kindling-agent
+  annotations:
+    prometheus.io/path: /metrics
+    prometheus.io/port: "9500"
+    prometheus.io/scrape: "true"
+spec:
+  selector:
+    k8s-app: kindling-agent
+  type: NodePort
+  ports:  
+  - name: http
+    port: 9500
+    targetPort: 9500
+    protocol: TCP
