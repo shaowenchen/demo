@@ -22,9 +22,16 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       -
-        name: Build and push
+        name: Build and push toolbox
         uses: docker/build-push-action@v3
         with:
           push: true
           file: docker-toolbox/Dockerfile
           tags: shaowenchen/toolbox:latest
+      -
+        name: Build and push fio
+        uses: docker/build-push-action@v3
+        with:
+          push: true
+          file: docker-fio/Dockerfile
+          tags: shaowenchen/demo-fio:latest
