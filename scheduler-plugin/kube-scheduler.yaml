@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kube-scheduler
+  namespace: kube-system
+spec:
+  containers:
+  - command:
+    - kube-scheduler
+    ...
+    - --config=/etc/kubernetes/scheduler-plugin.yaml
+    image: shaowenchen/scheduler-plugin:latest
+    imagePullPolicy: Always
+    volumeMounts:
+    - mountPath: /etc/kubernetes/scheduler-plugin.yaml
+      name: scheduler-plugin
+      readOnly: true
+  volumes:
+  - hostPath:
+      path: /etc/kubernetes/scheduler-plugin.yaml
+      type: File
+    name: scheduler-plugin
