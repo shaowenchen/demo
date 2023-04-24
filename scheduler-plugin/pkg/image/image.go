@@ -52,6 +52,14 @@ func (i *ImageNode) Filter(ctx context.Context, state *framework.CycleState, pod
 		return framework.NewStatus(framework.Success, "default")
 	}
 
+	workload := ""
+	if len(pod.ObjectMeta.OwnerReferences) > 0 {
+		workload = pod.ObjectMeta.OwnerReferences[0].Kind
+	}
+	if workload == "DaemonSet" {
+		return framework.NewStatus(framework.Success, "DaemonSet pass")
+	}
+
 	if isStringInList(node.Name, nodes) {
 		if isStringInList(pod.Namespace, nss) && isSpecialImage(pod, filterImage) {
 			return framework.NewStatus(framework.Success, "plugin hit")
