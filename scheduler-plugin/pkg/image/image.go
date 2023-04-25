@@ -2,6 +2,7 @@ package image
 
 import (
 	"context"
+	klog "k8s.io/klog/v2"
 	"math"
 	"math/rand"
 
@@ -44,11 +45,13 @@ func (i *ImageNode) Filter(ctx context.Context, state *framework.CycleState, pod
 	}
 	node := nodeInfo.Node()
 	if node == nil {
+		klog.Infof("node is nil")
 		return framework.NewStatus(framework.Error, "node is nil")
 	}
 	nodes, nss, filterImage := isSpecialNS(i.handle.ClientSet(), pod.Namespace)
 
 	if len(nodes) == 0 || len(nss) == 0 || len(filterImage) == 0 {
+		klog.Infof("nodes, nss, filterImage is nil")
 		return framework.NewStatus(framework.Success, "default")
 	}
 
@@ -57,17 +60,20 @@ func (i *ImageNode) Filter(ctx context.Context, state *framework.CycleState, pod
 		workload = pod.ObjectMeta.OwnerReferences[0].Kind
 	}
 	if workload == "DaemonSet" {
+		klog.Info("DaemonSet pass")
 		return framework.NewStatus(framework.Success, "DaemonSet pass")
 	}
 
 	if isStringInList(node.Name, nodes) {
 		if isStringInList(pod.Namespace, nss) && isSpecialImage(pod, filterImage) {
+			klog.Infof("plugin hit")
 			return framework.NewStatus(framework.Success, "plugin hit")
 		} else {
+			klog.Info("plugin disable special node")
 			return framework.NewStatus(framework.Unschedulable, "plugin disable special node")
 		}
 	}
-
+	klog.Info("default pass")
 	return framework.NewStatus(framework.Success, "default")
 }
 
@@ -75,9 +81,11 @@ func (i *ImageNode) Score(ctx context.Context, cycleState *framework.CycleState,
 	nodes, nss, filterImage := isSpecialNS(i.handle.ClientSet(), pod.Namespace)
 	if len(nodes) > 0 && len(filterImage) > 0 && len(nss) > 0 {
 		if isStringInList(nodeName, nodes) && isSpecialImage(pod, filterImage) {
+			klog.Infof("special node score")
 			return framework.MaxNodeScore - rand.Int63n(10), framework.NewStatus(framework.Success, "special node score")
 		}
 	}
+	klog.Infof("rand node score")
 	return rand.Int63n(framework.MaxNodeScore), framework.NewStatus(framework.Success, "rand node score")
 }
 
