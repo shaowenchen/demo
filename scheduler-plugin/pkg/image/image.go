@@ -2,9 +2,11 @@ package image
 
 import (
 	"context"
-	klog "k8s.io/klog/v2"
+	"fmt"
 	"math"
 	"math/rand"
+
+	klog "k8s.io/klog/v2"
 
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -69,7 +71,7 @@ func (i *ImageNode) Filter(ctx context.Context, state *framework.CycleState, pod
 			klog.Infof("plugin hit")
 			return framework.NewStatus(framework.Success, "plugin hit")
 		} else {
-			klog.Info("plugin disable special node")
+			klog.Info(fmt.Printf("plugin disable pod %s special node %s", pod.Name, node.Name))
 			return framework.NewStatus(framework.Unschedulable, "plugin disable special node")
 		}
 	}
@@ -81,12 +83,14 @@ func (i *ImageNode) Score(ctx context.Context, cycleState *framework.CycleState,
 	nodes, nss, filterImage := isSpecialNS(i.handle.ClientSet(), pod.Namespace)
 	if len(nodes) > 0 && len(filterImage) > 0 && len(nss) > 0 {
 		if isStringInList(nodeName, nodes) && isSpecialImage(pod, filterImage) {
-			klog.Infof("special node score")
-			return framework.MaxNodeScore - rand.Int63n(10), framework.NewStatus(framework.Success, "special node score")
+			retScore := framework.MaxNodeScore - rand.Int63n(10)
+			klog.Infof("special node score %d", retScore)
+			return retScore, framework.NewStatus(framework.Success, "special node score")
 		}
 	}
-	klog.Infof("rand node score")
-	return rand.Int63n(framework.MaxNodeScore), framework.NewStatus(framework.Success, "rand node score")
+	retScore := rand.Int63n(framework.MaxNodeScore - 50)
+	klog.Infof("rand node score %d", retScore)
+	return retScore, framework.NewStatus(framework.Success, "rand node score")
 }
 
 func (i *ImageNode) ScoreExtensions() framework.ScoreExtensions {
