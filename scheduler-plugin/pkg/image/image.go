@@ -83,7 +83,8 @@ func (i *ImageNode) Score(ctx context.Context, cycleState *framework.CycleState,
 	nodes, nss, filterImage := isSpecialNS(i.handle.ClientSet(), pod.Namespace)
 	if len(nodes) > 0 && len(filterImage) > 0 && len(nss) > 0 {
 		if isStringInList(nodeName, nodes) && isSpecialImage(pod, filterImage) {
-			retScore := framework.MaxNodeScore - rand.Int63n(10)
+			// retScore := framework.MaxNodeScore - rand.Int63n(10)
+			retScore := framework.MaxNodeScore
 			klog.Infof("special node score %d", retScore)
 			return retScore, framework.NewStatus(framework.Success, "special node score")
 		}
