@@ -7,6 +7,6 @@ spec:
   selector:
     matchLabels:
       app: blog
-  url: oci://docker.io/shaowenchen/wasm-hello-world:v1
+  url: oci://docker.io/shaowenchen/wasm-istio:v1
   imagePullPolicy: Always
   phase: UNSPECIFIED_PHASE

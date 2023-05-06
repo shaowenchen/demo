@@ -1,4 +1,4 @@
-module wasm-hello-world
+module wasm-istio
 
 go 1.19
 
