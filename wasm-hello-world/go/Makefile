@@ -10,4 +10,4 @@ image: clear build
 container:
 	docker run  --rm shaowenchen/wasm-hello-world:go
 clear:
-	rm -rf dist
+	rm -rf dist/main.wasm
