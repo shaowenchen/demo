@@ -28,7 +28,7 @@ license that can be found in the LICENSE file.
 
 		const go = new Go();
 		let mod, inst;
-		WebAssembly.instantiateStreaming(fetch("test.wasm"), go.importObject).then((result) => {
+		WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject).then((result) => {
 			mod = result.module;
 			inst = result.instance;
 			document.getElementById("runButton").disabled = false;
@@ -41,9 +41,14 @@ license that can be found in the LICENSE file.
 			await go.run(inst);
 			inst = await WebAssembly.instantiate(mod, go.importObject); // reset instance
 		}
+		function callGo() {
+			myfunc("abc");
+		}
 	</script>
 
 	<button onClick="run();" id="runButton" disabled>Run</button>
+	<button onClick="callGo();" id="callGoButton" >callGoButton</button>
+	<div id="hello"></div>
 </body>
 
 </html>
