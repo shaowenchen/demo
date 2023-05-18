@@ -1,0 +1,35 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: nginx-deployment-scaledobject
+  namespace: default
+spec:
+  scaleTargetRef:
+    name: nginx-deployment
+  pollingInterval: 15
+  cooldownPeriod: 30
+  minReplicaCount: 0
+  maxReplicaCount: 20
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleUp:
+          stabilizationWindowSeconds: 15
+          policies:
+          - type: Pods
+            value: 5
+            periodSeconds: 15
+        scaleDown:
+          stabilizationWindowSeconds: 60
+          policies:
+          - type: Pods
+            value: 5
+            periodSeconds: 15
+
+  triggers:
+  - type: prometheus
+    metadata:
+      serverAddress: http://prometheus-server.monitor.svc:80
+      metricName: nginx_server_requests
+      threshold: '5'
+      query: sum (irate(nginx_server_requests{code="total", host="*"}[1m]))/60
