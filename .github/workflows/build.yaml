@@ -2,6 +2,9 @@ name: Build
 
 on:
   push:
+    paths: 
+    - 'docker-toolbox/**'
+    - 'docker-fio/**'
     branches:
       - 'master'
 
