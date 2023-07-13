@@ -29,8 +29,22 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           push: true
-          file: docker-toolbox/Dockerfile
+          file: docker-toolbox/alpine.dockerfile
           tags: shaowenchen/toolbox:latest
+
+      - name: Build and push toolbox-alpine
+        uses: docker/build-push-action@v3
+        with:
+          push: true
+          file: docker-toolbox/alpine.dockerfile
+          tags: shaowenchen/toolbox-alpine:latest
+      -
+        name: Build and push toolbox-ubuntu
+        uses: docker/build-push-action@v3
+        with:
+          push: true
+          file: docker-toolbox/ubuntu.dockerfile
+          tags: shaowenchen/toolbox-ubuntu:latest
       -
         name: Build and push fio
         uses: docker/build-push-action@v3
