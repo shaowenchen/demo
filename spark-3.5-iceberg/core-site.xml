@@ -1,0 +1,90 @@
+<configuration>
+    <property>
+        <name>fs.ks3.attempts.maximum</name>
+        <value>10</value>
+    </property>
+
+    <property>
+        <name>fs.ks3.client.signer</name>
+        <value>com.ksyun.ks3.signer.DefaultSigner</value>
+    </property>
+
+    <property>
+        <name>fs.ks3.client.url.format</name>
+        <value>0</value>
+    </property>
+
+    <property>
+        <name>fs.ks3.connection.maximum</name>
+        <value>1000</value>
+    </property>
+
+    <property>
+        <name>fs.ks3.connection.timeout</name>
+        <value>240000</value>
+    </property>
+
+    <property>
+        <name>fs.ks3.connection.ttl</name>
+        <value>100000</value>
+    </property>
+
+    <property>
+        <name>fs.ks3.endpoint</name>
+        <value>ENDPOINT</value>
+    </property>
+
+    <property>
+        <name>fs.ks3.impl</name>
+        <value>com.ksyun.kmr.hadoop.fs.ks3.Ks3FileSystem</value>
+    </property>
+    <property>
+        <name>fs.ks3.AccessKey</name>
+        <value>ACCESS_KEY</value>
+    </property>
+    <property>
+        <name>fs.ks3.AccessSecret</name>
+        <value>SECRET_KEY</value>
+    </property>
+
+    <property>
+        <name>fs.ks3.proxy.port</name>
+        <value>-1</value>
+    </property>
+
+    <property>
+        <name>fs.ks3.socket.receive.buffer.size.hint</name>
+        <value>8192</value>
+    </property>
+
+    <property>
+        <name>fs.ks3.socket.send.buffer.size.hint</name>
+        <value>8192</value>
+    </property>
+
+    <property>
+        <name>fs.ks3.socket.timeout</name>
+        <value>240000</value>
+    </property>
+
+    <property>
+        <name>fs.ks3.whether.preemptive.basic.proxy.auth</name>
+        <value>false</value>
+    </property>
+
+    <property>
+        <name>fs.ks3.compatible.s3.fakedir</name>
+        <value>true</value>
+    </property>
+
+    <property>
+        <name>fs.ks3.storage.class</name>
+        <value>Standard</value>
+    </property>
+
+    <property>
+        <name>fs.ks3.storage.StandardInfrequentAccess</name>
+        <value>true</value>
+    </property>
+
+</configuration>
