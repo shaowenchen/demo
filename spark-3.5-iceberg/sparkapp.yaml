@@ -1,0 +1,61 @@
+apiVersion: "sparkoperator.k8s.io/v1beta2"
+kind: SparkApplication
+metadata:
+  name: spark-iceberg-example-mount-pvc
+  namespace: spark
+spec:
+  type: Python
+  pythonVersion: "3"
+  mode: cluster
+  image: shaowenchen/spark-k8s:py-s3
+  imagePullPolicy: Always
+  mainApplicationFile: local:///data-spark/spark-example.py
+  volumes:
+  - name: data
+    persistentVolumeClaim:
+      claimName: mypvc
+  sparkConf:
+    spark.sql.extensions: org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions
+    spark.sql.catalog.demo: org.apache.iceberg.spark.SparkCatalog
+    spark.sql.catalog.demo.type: hive
+    spark.sql.catalog.demo.warehouse: s3a://mybucket/datalake/spark-warehouse
+    spark.sql.defaultCatalog: demo
+    spark.sql.hive.thriftServer.singleSession: "false"
+    spark.hive.metastore.schema.verification: "false"
+    spark.hive.metastore.uris: thrift://hive-metastore.hive.svc:9083
+    spark.hadoop.fs.s3.impl: org.apache.hadoop.fs.s3a.S3AFileSystem
+    spark.hadoop.fs.s3n.impl: org.apache.hadoop.fs.s3a.S3AFileSystem
+    spark.hadoop.fs.s3a.path.style.access: "false"
+    spark.hadoop.fs.s3a.endpoint: ks3-cn-beijing-internal.ksyuncs.com
+    spark.hadoop.fs.s3a.bucket.name: mybucket
+    spark.hadoop.fs.s3a.access.key: xxx
+    spark.hadoop.fs.s3a.secret.key: xxx
+    spark.eventLog.enabled: "false"
+  sparkVersion: "3.5.1"
+  restartPolicy:
+    type: OnFailure
+    onFailureRetries: 3
+    onFailureRetryInterval: 10
+    onSubmissionFailureRetries: 5
+    onSubmissionFailureRetryInterval: 20
+  driver:
+    cores: 1
+    coreLimit: "1200m"
+    memory: "512m"
+    labels:
+      version: 3.5.1
+    serviceAccount: default
+    volumeMounts:
+    - name: data
+      mountPath: /data-spark
+      subPath: spark
+  executor:
+    cores: 1
+    instances: 1
+    memory: "512m"
+    labels:
+      version: 3.5.1
+    volumeMounts:
+    - name: data
+      mountPath: /data-spark
+      subPath: spark

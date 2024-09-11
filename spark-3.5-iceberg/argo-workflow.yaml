@@ -1,0 +1,92 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  name: sparkapp-start
+  namespace: argo
+spec:
+  entrypoint: sparkapp-operator
+  ttlStrategy:
+    secondsAfterCompletion: 36000
+  arguments:
+    parameters:
+      - name: script
+        value: spark-example.py
+      - name: pvc
+        value: mypvc
+      - name: path
+        value: spark
+      - name: executor
+        value: 2
+      - name: ak
+        value: xxx
+      - name: sk
+        value: xxx
+      - name: endpoint
+        value: ks3-cn-beijing-internal.ksyuncs.com
+      - name: bucket
+        value: mybucket
+  templates:
+    - name: sparkapp-operator
+      resource:
+        action: create
+        manifest: |
+          apiVersion: "sparkoperator.k8s.io/v1beta2"
+          kind: SparkApplication
+          metadata:
+            generateName: sparkapp-
+            namespace: spark
+          spec:
+            type: Python
+            pythonVersion: "3"
+            mode: cluster
+            image: shaowenchen/spark-k8s:py-s3
+            imagePullPolicy: Always
+            mainApplicationFile: local:///data-spark/{{workflow.parameters.script}}
+            volumes:
+            - name: data
+              persistentVolumeClaim:
+                claimName: '{{workflow.parameters.pvc}}'
+            sparkConf:
+              spark.sql.extensions: org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions
+              spark.sql.catalog.demo: org.apache.iceberg.spark.SparkCatalog
+              spark.sql.catalog.demo.type: hive
+              spark.sql.catalog.demo.warehouse: s3a://{{workflow.parameters.bucket}}/datalake/spark-warehouse
+              spark.sql.defaultCatalog: demo
+              spark.sql.hive.thriftServer.singleSession: "false"
+              spark.hive.metastore.schema.verification: "false"
+              spark.hive.metastore.uris: thrift://hive-metastore.hive.svc:9083
+              spark.hadoop.fs.s3.impl: org.apache.hadoop.fs.s3a.S3AFileSystem
+              spark.hadoop.fs.s3n.impl: org.apache.hadoop.fs.s3a.S3AFileSystem
+              spark.hadoop.fs.s3a.path.style.access: "false"
+              spark.hadoop.fs.s3a.endpoint: {{workflow.parameters.endpoint}}
+              spark.hadoop.fs.s3a.bucket.name: {{workflow.parameters.bucket}}
+              spark.hadoop.fs.s3a.access.key: {{workflow.parameters.ak}}
+              spark.hadoop.fs.s3a.secret.key: {{workflow.parameters.sk}}
+              spark.eventLog.enabled: "false"
+            sparkVersion: "3.5.1"
+            restartPolicy:
+              type: OnFailure
+              onFailureRetries: 3
+              onFailureRetryInterval: 10
+              onSubmissionFailureRetries: 5
+              onSubmissionFailureRetryInterval: 20
+            driver:
+              cores: 1
+              memory: "1G"
+              labels:
+                version: 3.5.1
+              serviceAccount: default
+              volumeMounts:
+              - name: data
+                mountPath: /data-spark
+                subPath: '{{workflow.parameters.path}}'
+            executor:
+              cores: 1
+              instances: {{workflow.parameters.executor}}
+              memory: "1G"
+              labels:
+                version: 3.5.1
+              volumeMounts:
+              - name: data
+                mountPath: /data-spark
+                subPath: '{{workflow.parameters.path}}'
