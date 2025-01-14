@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-vllm-qwen1.5-1.8b-chat
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: demo-vllm-qwen1.5-1.8b-chat
+  template:
+    metadata:
+      labels:
+        app: demo-vllm-qwen1.5-1.8b-chat
+    spec:
+      containers:
+      - name: demo-vllm-qwen1.5-1.8b-chat
+        image: registry.cn-beijing.aliyuncs.com/shaowenchen/demo-vllm-qwen1.5-1.8b-chat
+      args:
+        - "--dtype=half"
+        - "--model /models/Qwen1.5-1.8B-Chat"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo-vllm-qwen1.5-1.8b-chat
+  namespace: default
+spec:
+  selector:
+    app: demo-vllm-qwen1.5-1.8b-chat
+  ports:
+  - protocol: TCP
+    port: 8000
+    targetPort: 8000
+  type: NodePort
