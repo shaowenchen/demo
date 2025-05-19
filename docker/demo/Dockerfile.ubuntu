@@ -1,0 +1,20 @@
+FROM hubimage/runtime-ubuntu:20.04
+
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y \
+    python3 \
+    iputils-ping \
+    telnet \
+    curl \
+    mtr \
+    dnsutils \
+    iproute2 \
+    iptables && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /tmp/* && \
+    rm -rf /var/log/*
+
+WORKDIR /var/log/
+
+CMD ["python3", "-m", "http.server", "80"]

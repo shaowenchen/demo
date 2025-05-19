@@ -1,0 +1,18 @@
+ARG BASE_IMAGE=shaowenchen/demo-3fsbuilder:latest
+FROM ${BASE_IMAGE} as builder
+RUN git config --global http.version HTTP/1.1 && \
+    git clone https://github.com/deepseek-ai/3FS && \
+    cd 3FS && \
+    git submodule update --init --recursive && \
+    ./patches/apply.sh && \
+    cmake -S . -B build -DCMAKE_CXX_COMPILER=clang++-14 -DCMAKE_C_COMPILER=clang-14 -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_EXPORT_COMPILE_COMMANDS=ON && \
+    cmake --build build -j 100
+FROM ${BASE_IMAGE}
+COPY --from=builder /app/3FS/build/bin /opt/3fs/bin
+COPY --from=builder /app/3FS/configs /opt/3fs/etc
+COPY --from=builder /app/3FS/deploy /opt/3fs/deploy
+COPY --from=builder /app/3FS/build/third_party/jemalloc/lib/libjemalloc.so.2 /lib/x86_64-linux-gnu/
+RUN mkdir -p /var/log/3fs/ && \
+    wget -O /opt/3fs/bin/3fs-entrypoint.sh https://raw.githubusercontent.com/shaowenchen/demo/master/3fs-deploy/3fs-entrypoint.sh && \
+    chmod +x /opt/3fs/bin/3fs-entrypoint.sh
+WORKDIR /opt/3fs/bin

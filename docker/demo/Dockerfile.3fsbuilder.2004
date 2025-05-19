@@ -1,0 +1,60 @@
+# Base image
+FROM ubuntu:20.04
+
+# Arguments
+ARG FOUNDATIONDB_TAG=7.3.59
+ARG FOUNDATIONDB_VERSION=${FOUNDATIONDB_TAG}-1
+ARG LIBFUSE_TAG=fuse-3.16.1
+ARG LIBFUSE_VERSION=3.16.1
+ARG LLVM_VERSION=14
+
+ARG ARCH=aarch64
+
+RUN apt-get update && \
+    ln -fs /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata && \
+    dpkg-reconfigure --frontend noninteractive tzdata
+# Install dependencies
+RUN apt-get install -y --no-install-recommends \
+    infiniband-diags wget git lsb-release gnupg software-properties-common build-essential meson  && \
+    wget -q https://apt.llvm.org/llvm.sh && \
+    bash llvm.sh ${LLVM_VERSION} && \
+    apt-get install -y --no-install-recommends \
+    cmake libuv1-dev liblz4-dev liblzma-dev libdouble-conversion-dev libdwarf-dev libunwind-dev \
+    libaio-dev libgflags-dev libgoogle-glog-dev libgtest-dev libgmock-dev clang-format-14 clang-14 clang-tidy-14 lld-14 \
+    libgoogle-perftools-dev google-perftools libssl-dev libclang-rt-14-dev gcc-10 g++-10 libboost1.71-all-dev && \
+    # Add Apache Arrow repository and install
+    wget -q https://apache.jfrog.io/artifactory/arrow/$(lsb_release --id --short | tr 'A-Z' 'a-z')/apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb && \
+    apt-get install -y ./apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends libarrow-dev && \
+    # Cleanup unnecessary files to reduce image size
+    rm -rf /var/lib/apt/lists/* llvm.sh apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
+
+RUN wget https://raw.githubusercontent.com/Mellanox/container_scripts/refs/heads/master/ibdev2netdev -O /usr/sbin/ibdev2netdev && \
+chmod +x /usr/sbin/ibdev2netdev
+
+# Install Rust
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+
+# Install FoundationDB client
+RUN wget https://github.com/apple/foundationdb/releases/download/${FOUNDATIONDB_TAG}/foundationdb-clients_${FOUNDATIONDB_VERSION}_${ARCH}.deb && \
+    dpkg -i ./foundationdb-clients_${FOUNDATIONDB_VERSION}_${ARCH}.deb && \
+    rm -f foundationdb-clients_${FOUNDATIONDB_VERSION}_${ARCH}.deb
+
+# Build and install libfuse
+RUN wget https://github.com/libfuse/libfuse/releases/download/${LIBFUSE_TAG}/fuse-${LIBFUSE_VERSION}.tar.gz && \
+    tar -zxvf fuse-${LIBFUSE_VERSION}.tar.gz && \
+    cd fuse-${LIBFUSE_VERSION} && \
+    mkdir build && \
+    cd build && \
+    meson setup .. && \
+    ninja && \
+    ninja install && \
+    cd ../.. && \
+    rm -rf fuse-${LIBFUSE_VERSION} fuse-${LIBFUSE_VERSION}.tar.gz
+
+# Set up environment variables
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+WORKDIR /app

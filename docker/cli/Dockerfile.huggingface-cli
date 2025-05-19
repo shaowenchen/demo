@@ -1,0 +1,5 @@
+FROM hubimage/runtime-python:3.11
+ENV HF_ENDPOINT=https://hf-mirror.com
+ENV HF_HUB_ENABLE_HF_TRANSFER=1
+RUN pip install -U huggingface_hub hf_transfer
+ENTRYPOINT ["huggingface-cli"]

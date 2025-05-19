@@ -1,0 +1,28 @@
+FROM nvidia/cuda:12.2.2-runtime-ubuntu22.04	
+RUN apt-get update && \
+    apt install -y python3 python3-pip git && \
+    pip install torch==2.1+cu118 \
+                --extra-index-url https://download.pytorch.org/whl/cu118 && \
+    pip install "git+https://github.com/facebookresearch/pytorch3d.git@v0.7.7"
+RUN pip install \
+        numpy==1.26.4 \
+        scipy \
+        librosa \
+        transformers \
+        pyrender \
+        potpourri3d \
+        sacremoses \
+        robust_laplacian \
+        wandb \
+        trimesh \
+        scikit-learn \
+        opencv-python-headless \
+        seaborn \
+        bpy \
+        requests \
+        filelock \
+        huggingface_hub \
+        packaging \
+        trimesh \
+        tqdm \
+        configargparse

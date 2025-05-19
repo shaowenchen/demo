@@ -1,0 +1,15 @@
+FROM ubuntu:20.04
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y \
+    fio \
+    python3 && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /tmp/* && \
+    rm -rf /var/log/*
+
+WORKDIR /var/log/
+
+CMD ["python3", "-m", "http.server", "80"]

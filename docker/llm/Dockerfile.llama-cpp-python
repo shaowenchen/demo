@@ -1,0 +1,11 @@
+FROM hubimage/runtime-python:3.11
+
+RUN python3 -m pip install --upgrade pip pytest cmake scikit-build setuptools fastapi uvicorn sse-starlette pydantic-settings starlette-context
+
+RUN pip install llama-cpp-python==0.2.6
+
+ENV MODEL=/models/xxx.gguf
+ENV HOST=0.0.0.0
+ENV PORT=8000
+
+CMD python3 -m llama_cpp.server --model $MODEL --host $HOST --port $PORT

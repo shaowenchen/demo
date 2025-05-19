@@ -1,0 +1,19 @@
+
+FROM alpine:latest as builder
+ARG TARGETARCH
+WORKDIR /data
+RUN wget https://github.com/git-lfs/git-lfs/releases/download/v3.4.0/git-lfs-linux-${TARGETARCH}-v3.4.0.tar.gz && \
+    tar xvfz git-lfs-linux-${TARGETARCH}-v3.4.0.tar.gz
+
+FROM alpine:latest
+RUN apk update && \
+    apk upgrade && \
+    apk add --update alpine-sdk && \
+    apk add --no-cache \
+    git \
+    openssh
+
+COPY --from=builder /data/git-lfs-3.4.0/git-lfs /usr/local/bin/git-lfs
+RUN git lfs install
+WORKDIR /runtime
+ENTRYPOINT ["git"]

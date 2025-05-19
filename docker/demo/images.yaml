@@ -1,0 +1,15 @@
+shaowenchen/demo-pytorch3d: registry.cn-beijing.aliyuncs.com/shaowenchen/demo-pytorch3d
+shaowenchen/demo-3fsbuilder: registry.cn-beijing.aliyuncs.com/shaowenchen/demo-3fsbuilder
+shaowenchen/demo-3fs: registry.cn-beijing.aliyuncs.com/shaowenchen/demo-3fs
+shaowenchen/demo-fluid-s3fs: registry.cn-beijing.aliyuncs.com/shaowenchen/demo-fluid-s3fs
+shaowenchen/demo-iperf3: registry.cn-beijing.aliyuncs.com/shaowenchen/demo-iperf3
+shaowenchen/demo-ubuntu: registry.cn-beijing.aliyuncs.com/shaowenchen/demo-ubuntu
+shaowenchen/demo-sshd: registry.cn-beijing.aliyuncs.com/shaowenchen/demo-sshd
+shaowenchen/demo-alpine: registry.cn-beijing.aliyuncs.com/shaowenchen/demo-alpine
+shaowenchen/demo-fio: registry.cn-beijing.aliyuncs.com/shaowenchen/demo-fio
+shaowenchen/demo-whomai: registry.cn-beijing.aliyuncs.com/shaowenchen/demo-whomai
+shaowenchen/demo-nginx-stream: registry.cn-beijing.aliyuncs.com/shaowenchen/demo-nginx-stream
+traefik/whoami: shaowenchen/demo-whomai
+tekn0ir/nginx-stream: shaowenchen/demo-nginx-stream
+softonic/nginx-vts: shaowenchen/demo-nginx-vts
+sophos/nginx-vts-exporter: shaowenchen/demo-nginx-vts-exporter
