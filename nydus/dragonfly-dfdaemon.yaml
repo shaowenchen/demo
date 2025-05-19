@@ -1,0 +1,187 @@
+apiVersion: v1
+data:
+  dfget.yaml: |
+    aliveTime: 0s
+    gcInterval: 1m0s
+    keepStorage: false
+    workHome: /usr/local/dragonfly
+    logDir: /var/log/dragonfly
+    cacheDir: /var/cache/dragonfly
+    pluginDir: /usr/local/dragonfly/plugins
+    dataDir: /var/lib/dragonfly
+    console: true
+    health:
+      path: /server/ping
+      tcpListen:
+        port: 40901
+    verbose: true
+    pprof-port: 18066
+    metrics: ":8000"
+    jaeger: ""
+    scheduler:
+      manager:
+        enable: true
+        netAddrs:
+          - type: tcp
+            addr: $MANAGER_IP:65003
+        refreshInterval: 10m
+      netAddrs:
+      scheduleTimeout: 30s
+      disableAutoBackSource: false
+      seedPeer:
+        clusterID: 1
+        enable: false
+        type: super
+    host:
+      idc: ""
+      location: ""
+    download:
+      calculateDigest: true
+      downloadGRPC:
+        security:
+          insecure: true
+          tlsVerify: true
+        unixListen:
+          socket: ""
+      peerGRPC:
+        security:
+          insecure: true
+        tcpListen:
+          port: 65000
+      perPeerRateLimit: 5120Mi
+      prefetch: false
+      totalRateLimit: 10240Mi
+    upload:
+      rateLimit: 10240Mi
+      security:
+        insecure: true
+        tlsVerify: false
+      tcpListen:
+        port: 65002
+    objectStorage:
+      enable: false
+      filter: Expires&Signature&ns
+      maxReplicas: 3
+      security:
+        insecure: true
+        tlsVerify: true
+      tcpListen:
+        port: 65004
+    storage:
+      diskGCThreshold: 1000Gi
+      multiplex: true
+      strategy: io.d7y.storage.v2.simple
+      taskExpireTime: 72h
+    proxy:
+      defaultFilter: Expires&Signature&ns
+      defaultTag:
+      tcpListen:
+        port: 65001
+      security:
+        insecure: true
+        tlsVerify: false
+      registryMirror:
+        dynamic: true
+        insecure: false
+        url: https://index.docker.io
+      proxies:
+        - regx: blobs/sha256.*
+        - regx: s3.*amazonaws.com.*
+        - regx: oss.*aliyuncs.com.*
+        - regx: obs.*myhuaweicloud.com.*
+        - regx: ks3.*ksyun.com.*
+    security:
+      autoIssueCert: false
+      caCert: ""
+      certSpec:
+        dnsNames: null
+        ipAddresses: null
+        validityPeriod: 4320h
+      tlsPolicy: prefer
+      tlsVerify: false
+    network:
+      enableIPv6: false
+    announcer:
+      schedulerInterval: 30s
+kind: ConfigMap
+metadata:
+  labels:
+    app: dragonfly
+  name: dragonfly-dfdaemon
+  namespace: dragonfly-system
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  labels:
+    app: dragonfly
+  name: dragonfly-dfdaemon
+  namespace: dragonfly-system
+spec:
+  selector:
+    matchLabels:
+      app: dragonfly
+  template:
+    metadata:
+      labels:
+        app: dragonfly
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - image: registry.cn-beijing.aliyuncs.com/opshub/dragonflyoss-dfdaemon:v2.1.28
+        livenessProbe:
+          exec:
+            command:
+            - /bin/grpc_health_probe
+            - -addr=:65000
+        name: dfdaemon
+        ports:
+        - containerPort: 65001
+          protocol: TCP
+        - containerPort: 40901
+          protocol: TCP
+        - containerPort: 8000
+          protocol: TCP
+        readinessProbe:
+          exec:
+            command:
+            - /bin/grpc_health_probe
+            - -addr=:65000
+          failureThreshold: 3
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources:
+          limits:
+            cpu: "2"
+            memory: 2Gi
+        securityContext:
+          capabilities:
+            add:
+            - SYS_ADMIN
+        volumeMounts:
+        - mountPath: /etc/dragonfly
+          name: config
+        - mountPath: /var/cache/dragonfly
+          name: dfgetcache
+        - mountPath: /var/lib/dragonfly
+          name: dfgetdata
+      hostNetwork: true
+      hostPID: true
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: dragonfly-dfdaemon
+        name: config
+      - hostPath:
+          path: /data/dfget/cache
+          type: DirectoryOrCreate
+        name: dfgetcache
+      - hostPath:
+          path: /data/dfget/data
+          type: DirectoryOrCreate
+        name: dfgetdata

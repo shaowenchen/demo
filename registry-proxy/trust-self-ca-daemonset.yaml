@@ -1,0 +1,103 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: trust-self-ca
+  namespace: kube-system
+  labels:
+    app: trust-self-ca
+spec:
+  selector:
+    matchLabels:
+      app: trust-self-ca
+  template:
+    metadata:
+      labels:
+        app: trust-self-ca
+    spec:
+      hostPID: true
+      containers:
+      - name: trust-self-ca
+        image: registry.cn-beijing.aliyuncs.com/opshub/ubuntu:20.04
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          if [ -f /usr/local/share/ca-certificates/$CA_NAME ]; then
+            echo "CA certificate already exists on this node."
+            update-ca-certificates
+            sleep infinity
+          fi
+          cp /ca-certificates/ca.crt /usr/local/share/ca-certificates/$CA_NAME
+          echo "CA certificate copied to this node."
+          update-ca-certificates
+          echo "Certificate store updated."
+          sleep infinity
+        env:
+        - name: CA_NAME
+          value: "self-ca.crt"
+        volumeMounts:
+        - name: ca-certificates
+          mountPath: /ca-certificates
+          readOnly: true
+        - name: host-ca-certificates
+          mountPath: /usr/local/share/ca-certificates
+          readOnly: false
+        securityContext:
+          privileged: true
+      volumes:
+      - name: ca-certificates
+        configMap:
+          name: ca-certificates
+      - name: host-ca-certificates
+        hostPath:
+          path: /usr/local/share/ca-certificates
+      restartPolicy: Always
+      tolerations:
+      - effect: NoSchedule
+        operator: Exists
+      - effect: NoExecute
+        operator: Exists
+      - key: CriticalAddonsOnly
+        operator: Exists
+      - key: node-role.kubernetes.io/control-plane
+        effect: NoSchedule
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ca-certificates
+  namespace: kube-system
+data:
+  ca.crt: |
+    -----BEGIN CERTIFICATE-----
+    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
+    -----END CERTIFICATE-----
