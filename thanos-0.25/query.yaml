@@ -61,7 +61,7 @@ spec:
         - --store=dnssrv+_grpc._tcp.thanos-rule.thanos.svc.cluster.local
         - --store=dnssrv+_grpc._tcp.thanos-store.thanos.svc.cluster.local
         - --store=dnssrv+_grpc._tcp.thanos-receive.thanos.svc.cluster.local
-        image: thanosio/thanos:v0.25.2
+        image: registry.cn-beijing.aliyuncs.com/opshub/thanosio-thanos:v0.25.2
         resources:
           requests:
             memory: "2048Mi"
