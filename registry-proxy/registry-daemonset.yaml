@@ -1,12 +1,11 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: DaemonSet
 metadata:
   name: registry-proxy
   namespace: kube-system
   labels:
     app: registry-proxy
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: registry-proxy
@@ -16,6 +15,12 @@ spec:
         app: registry-proxy
     spec:
       hostNetwork: true
+      hostAliases:
+      - ip: "10.10.10.10"
+        hostnames:
+        - "custom.registry.local"
+      nodeSelector:
+        registry-proxy: "true"
       containers:
       - name: registry
         image: registry.cn-beijing.aliyuncs.com/opshub/registry:2
