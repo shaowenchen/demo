@@ -4,28 +4,95 @@ on:
   workflow_dispatch:
     inputs:
       repo:
-        description: ""
+        description: "Repository name to sync"
         required: true
         default: "chinese-llama-2-7b-gguf"
+      direction:
+        description: "Sync direction (choose one)"
+        required: true
+        default: "ms2hf"
+        type: choice
+        options:
+          - ms2hf
+          - hf2ms
+
 jobs:
-  build:
-    name: Sync Modelscope to Huggingfaceq
+  sync-ms-to-hf:
+    name: Sync Modelscope to HuggingFace
     runs-on: self-hosted
+    if: ${{ inputs.direction == 'ms2hf' }}
     steps:
-      - name: Checkout code
+      - name: Checkout code from Modelscope
         run: |
           GIT_LFS_SKIP_SMUDGE=1 git clone https://www.modelscope.cn/shaowenchen/${{ inputs.repo }}.git || true
-      - name: Pull LFS
+
+      - name: Pull latest from Modelscope
         run: |
           cd ${{ inputs.repo }} && git pull origin master && git lfs pull
+
       - name: Configure git
         run: |
           git config --global user.email "mail@chenshaowen.com"
           git config --global user.name "shaowenchen"
-      - name: Push to Huggingface
+
+      - name: Sync to HuggingFace
         run: |
           cd ${{ inputs.repo }}
           git remote add hf https://${{ secrets.HF_USERNAME }}:${{ secrets.HF_PASSWORD }}@huggingface.co/shaowenchen/${{ inputs.repo }}.git || true
           git pull hf main --allow-unrelated-histories -X ours --no-edit
           huggingface-cli lfs-enable-largefiles ./
           git push -f hf master:main
+
+      - name: Cleanup
+        run: |
+          rm -rf ${{ inputs.repo }}
+
+  sync-hf-to-ms:
+    name: Sync HuggingFace to Modelscope
+    runs-on: self-hosted
+    if: ${{ inputs.direction == 'hf2ms' }}
+    steps:
+      - name: Checkout code from HuggingFace
+        run: |
+          GIT_LFS_SKIP_SMUDGE=1 git clone https://${{ secrets.HF_USERNAME }}:${{ secrets.HF_PASSWORD }}@huggingface.co/shaowenchen/${{ inputs.repo }}.git || true
+
+      - name: Pull latest from HuggingFace
+        run: |
+          cd ${{ inputs.repo }} && git pull origin main && git lfs pull
+
+      - name: Configure git
+        run: |
+          git config --global user.email "mail@chenshaowen.com"
+          git config --global user.name "shaowenchen"
+
+      - name: Sync to Modelscope
+        run: |
+          cd ${{ inputs.repo }}
+          git remote add ms https://www.modelscope.cn/shaowenchen/${{ inputs.repo }}.git || true
+          git pull ms master --allow-unrelated-histories -X ours --no-edit
+          git push -f ms main:master
+
+      - name: Cleanup
+        run: |
+          rm -rf ${{ inputs.repo }}
+
+  sync-summary:
+    name: Sync Summary
+    runs-on: self-hosted
+    needs: [sync-ms-to-hf, sync-hf-to-ms]
+    if: always()
+    steps:
+      - name: Check sync status
+        run: |
+          echo "Sync direction: ${{ inputs.direction }}"
+          echo "Modelscope to HuggingFace job status: ${{ needs.sync-ms-to-hf.result }}"
+          echo "HuggingFace to Modelscope job status: ${{ needs.sync-hf-to-ms.result }}"
+
+          if [[ "${{ inputs.direction }}" == "ms2hf" && "${{ needs.sync-ms-to-hf.result }}" == "success" ]]; then
+            echo "✅ Modelscope to HuggingFace sync completed successfully"
+          elif [[ "${{ inputs.direction }}" == "hf2ms" && "${{ needs.sync-hf-to-ms.result }}" == "success" ]]; then
+            echo "✅ HuggingFace to Modelscope sync completed successfully"
+          else
+            echo "❌ Sync job failed"
+            exit 1
+          fi
