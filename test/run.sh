@@ -56,6 +56,7 @@ for img in "${images[@]}"; do
             continue
         else
             dest_image="shaowenchen/demo:${suffix}-${tag_item}"
+        fi
 
 
         log "复制: $src_image -> $dest_image"
