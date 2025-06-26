@@ -42,13 +42,14 @@ for img in "${images[@]}"; do
 
     for tag_item in $src_tags; do
         src_image="${img}:${tag_item}"
-
+        
         if [[ "$tag_item" == "latest" ]]; then
             dest_image="shaowenchen/demo:${suffix}"
-        # 包含 "-latest" 关键字的就移除 -latest
+        # 若 tag 中包含 "-latest"（例如 latest-arm64），移除该部分
         elif [[ "$tag_item" == *"-latest"* ]]; then
-            tag_item="${tag_item%-latest}"
-            dest_image="shaowenchen/demo:${suffix}-${tag_item}"
+            # 去掉所有的 -latest 子串
+            tag_item_cleaned="${tag_item//-latest/}"
+            dest_image="shaowenchen/demo:${suffix}-${tag_item_cleaned}"
         else
             dest_image="shaowenchen/demo:${suffix}-${tag_item}"
         fi
