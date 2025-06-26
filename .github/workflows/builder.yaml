@@ -1,12 +1,20 @@
 name: Builder
 
 on:
-  push:
-    paths:
-      - "builder/**"
-    branches:
-      - master
   workflow_dispatch:
+    inputs:
+      builder:
+        description: "选择要构建的构建器类型"
+        required: true
+        default: "ubuntu"
+        type: choice
+        options:
+          - node
+          - golang
+          - python
+          - pypy
+          - maven
+
 jobs:
   docker:
     runs-on: ubuntu-latest
@@ -23,12 +31,4 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
       - name: Build and Push Node
-        run: cd ./builder/node && bash run.sh
-      - name: Build and Push Golang
-        run: cd ./builder/golang && bash run.sh
-      - name: Build and Push Python
-        run: cd ./builder/python && bash run.sh
-      - name: Build and Push PyPy
-        run: cd ./builder/pypy && bash run.sh
-      - name: Build and Push Maven
-        run: cd ./builder/maven && bash run.sh
+        run: cd ./builder/${{ github.event.inputs.builder }} && bash run.sh
