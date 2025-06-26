@@ -47,8 +47,9 @@ for img in "${images[@]}"; do
             dest_image="shaowenchen/demo:${suffix}"
         # 若 tag 中包含 "-latest"（例如 latest-arm64），移除该部分
         elif [[ "$tag_item" == *"-latest"* ]]; then
-            # 去掉所有的 -latest 子串
+            echo "==> case: contains '-latest'"
             tag_item_cleaned="${tag_item//-latest/}"
+            echo "DEBUG cleaned tag: $tag_item_cleaned"
             dest_image="shaowenchen/demo:${suffix}-${tag_item_cleaned}"
         # 跳过包含 nydus 的 tag
         elif [[ "$tag_item" == *"-nydus"* ]]; then
