@@ -23,7 +23,7 @@ images=(
 # 函数：列出镜像的所有 tag
 list_image_tags() {
   local image_name="$1"
-  local src_image="shaowenchen-${image_name}:${tag}"
+  local src_image="shaowenchen/${image_name}:${tag}"
 
   echo "==> Querying tags for $src_image"
 
