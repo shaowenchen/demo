@@ -5,7 +5,7 @@ on:
     inputs:
       path:
         required: true
-        default: './llama-cpp-python/run.sh'
+        default: './test/run.sh'
 jobs:
   build:
     name: Run Shell Script
