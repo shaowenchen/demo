@@ -11,7 +11,7 @@ on:
       image_name:
         description: ''
         required: true
-        default: 'shaowenchen/demo-3fs:latest-arm64'
+        default: 'shaowenchen/demo:3fs-arm64'
         type: string
       platform:
         description: 'Target platform(s)'
