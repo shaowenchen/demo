@@ -2,69 +2,67 @@
 
 set -e
 
-# 指定 tag，默认 latest
+# 默认使用 latest tag
 tag="${1:-latest}"
 
 authfile="$HOME/.docker/config.json"
 
-# 镜像列表（只有简名，脚本自动组装源镜像和目标镜像）
+# 镜像列表
 images=(
-  demo-vllm-qwen
-  demo-3fsbuilder
-  demo-3fs
-  demo-ubuntu
-  demo-sshd
-  demo-alpine
-  demo-fio
-  demo-iperf3
-  git
+    shaowenchen/demo-3fs
+    shaowenchen/demo-3fsbuilder
+    shaowenchen/demo-pytorch3d
+    shaowenchen/demo-fio
+    shaowenchen/demo-alpine
+    shaowenchen/demo-sshd
+    shaowenchen/demo-ubuntu
+    shaowenchen/demo-iperf3
+    shaowenchen/demo-fluid-3fs
+    shaowenchen/demo-vllm-qwen
+    shaowenchen/demo-nginx-vts-exporter
+    shaowenchen/demo-nginx-vts
+    shaowenchen/demo-nginx-stream
+    shaowenchen/demo-whoami
+    shaowenchen/demo-fluid-s3fs
+    shaowenchen/demo-fluid-lustre
 )
 
-# 函数：列出镜像的所有 tag
-list_image_tags() {
-  local image_name="$1"
-  local src_image="shaowenchen/${image_name}:${tag}"
+# 检查镜像是否存在
+image_exists() {
+  local image="$1"
 
-  echo "==> Querying tags for $src_image"
-
-  # 使用 skopeo 查询镜像的 tag 列表
-  if docker run --rm -v "$authfile":/auth.json quay.io/skopeo/stable:v1.13.0 list-tags \
-    docker://$src_image \
+  docker run --rm -v "$authfile":/auth.json quay.io/skopeo/stable:v1.13.0 list-tags \
+    docker://"$image" \
     --authfile /auth.json \
     --insecure-policy \
-    --tls-verify=false 2>/dev/null; then
-    echo "✓ Found tags for $src_image"
-    return 0
+    --tls-verify=false > /dev/null 2>&1
+}
+
+# 构造目标镜像名称
+build_dest_image() {
+  local full_image="$1"
+  local base="${full_image##*/}"  # 去掉前缀，保留 demo-xxx
+
+  # 去除 demo- 前缀
+  local suffix="${base#demo-}"
+
+  if [[ "$tag" == "latest" ]]; then
+    echo "shaowenchen/demo:${suffix}"
   else
-    echo "✗ No tags found for $src_image or image doesn't exist"
-    return 1
+    echo "shaowenchen/demo:${suffix}-${tag}"
   fi
 }
 
-# 函数：复制镜像
+# 复制镜像
 copy_image() {
-  local name="$1"
-  local src_image="shaowenchen-${name}:${tag}"
+  local src_image="$1"
+  local dest_image="$2"
 
-  # 从 name 中提取后缀用于目标 tag
-  local suffix="${name#demo-}"    # 去掉 demo- 前缀
-  suffix="${suffix#shaowenchen-}" # 万一写错成 shaowenchen-git 也能处理
-
-  # 构建目标镜像名
-  local dest_image
-  if [[ "$tag" == "latest" ]]; then
-    # 如果是 latest tag，目标镜像不包含 tag
-    dest_image="shaowenchen/demo:${suffix}"
-  else
-    # 如果不是 latest，目标镜像包含 tag
-    dest_image="shaowenchen/demo:${suffix}-${tag}"
-  fi
-
-  echo "==> Copying $src_image to $dest_image"
+  echo "==> Copying $src_image -> $dest_image"
 
   docker run --rm -v "$authfile":/auth.json quay.io/skopeo/stable:v1.13.0 copy --multi-arch all \
-    docker://$src_image \
-    docker://$dest_image \
+    docker://"$src_image" \
+    docker://"$dest_image" \
     --dest-authfile /auth.json \
     --insecure-policy \
     --src-tls-verify=false \
@@ -72,40 +70,23 @@ copy_image() {
     --retry-times 1
 }
 
-echo "=== 开始查询镜像 tag ==="
-echo "查询 tag: $tag"
+echo "=== 镜像同步任务启动 ==="
+echo "使用 tag: $tag"
+echo "==========================="
 echo
 
-# 第一步：查询所有镜像的 tag
-for name in "${images[@]}"; do
-  if list_image_tags "$name"; then
-    echo
+for img in "${images[@]}"; do
+  src_image="${img}:${tag}"
+  echo "--> 检查镜像是否存在: $src_image"
+
+  if image_exists "$img"; then
+    dest_image=$(build_dest_image "$img")
+    copy_image "$src_image" "$dest_image"
+    echo "✓ 完成: $img"
   else
-    echo "跳过不存在的镜像: $name"
-    echo
-  fi
-done
-
-echo "=== 开始复制镜像 ==="
-echo
-
-# 第二步：复制存在的镜像
-for name in "${images[@]}"; do
-  src_image="shaowenchen-${name}:${tag}"
-
-  # 再次检查镜像是否存在（通过尝试列出 tag）
-  if docker run --rm -v "$authfile":/auth.json quay.io/skopeo/stable:v1.13.0 list-tags \
-    docker://$src_image \
-    --authfile /auth.json \
-    --insecure-policy \
-    --tls-verify=false >/dev/null 2>&1; then
-
-    copy_image "$name"
-    echo "✓ 复制完成: $name"
-  else
-    echo "✗ 跳过不存在的镜像: $name"
+    echo "✗ 跳过: 镜像不存在或 tag 无效 - $src_image"
   fi
   echo
 done
 
-echo "=== 所有操作完成 ==="
+echo "=== 所有镜像同步完成 ==="
