@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: demo-vllm-qwen1.5-1.8b-chat
-        image: registry.cn-beijing.aliyuncs.com/shaowenchen/demo-vllm-qwen1.5-1.8b-chat
+        image: shaowenchen/demo-vllm-qwen1.5-1.8b-chat
       args:
         - "--dtype=half"
         - "--model /models/Qwen1.5-1.8B-Chat"
