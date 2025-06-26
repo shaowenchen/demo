@@ -43,7 +43,7 @@ for img in "${images[@]}"; do
     for tag_item in $src_tags; do
         src_image="${img}:${tag_item}"
 
-        if tag_item == "latest"; then
+        if [[ "$tag_item" == "latest" ]]; then
             dest_image="shaowenchen/demo:${suffix}"
         # 包含 "-latest" 关键字的就移除 -latest
         elif [[ "$tag_item" == *"-latest"* ]]; then
