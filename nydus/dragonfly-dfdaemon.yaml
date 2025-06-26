@@ -131,7 +131,7 @@ spec:
         prometheus.io/path: "/metrics"
     spec:
       containers:
-      - image: registry.cn-beijing.aliyuncs.com/opshub/dragonflyoss-dfdaemon:v2.1.28
+      - image: dragonflyoss/dfdaemon:v2.1.28
         livenessProbe:
           exec:
             command:

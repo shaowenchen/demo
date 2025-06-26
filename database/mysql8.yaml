@@ -44,7 +44,7 @@ spec:
     spec:
       containers:
         - name: mysql
-          image: registry.cn-beijing.aliyuncs.com/opshub/bitnami-mysql:8.0
+          image: bitnami/mysql:8.0
           ports:
             - containerPort: 3306
           envFrom:

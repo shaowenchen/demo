@@ -22,12 +22,6 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
-      - name: Login to ACR
-        uses: docker/login-action@v3
-        with:
-          registry: https://registry.cn-beijing.aliyuncs.com
-          username: "${{ secrets.ACR_USERNAME }}"
-          password: "${{ secrets.ACR_PASSWORD }}"
       # - name: Build and push 3fsbuilder
       #   run: |
       #     docker buildx build --push --platform=linux/arm64 -t shaowenchen/demo-3fsbuilder:latest-arm64 -f docker/demo/Dockerfile.3fsbuilder .

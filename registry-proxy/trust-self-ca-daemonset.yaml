@@ -17,7 +17,7 @@ spec:
       hostPID: true
       containers:
       - name: trust-self-ca
-        image: registry.cn-beijing.aliyuncs.com/opshub/ubuntu:20.04
+        image: ubuntu:20.04
         command: ["/bin/bash", "-c"]
         args:
         - |
