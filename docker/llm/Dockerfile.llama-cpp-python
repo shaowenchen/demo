@@ -1,4 +1,4 @@
-FROM hubimage/runtime-python:3.11
+FROM shaowenchen/runtime-python:3.11
 
 RUN python3 -m pip install --upgrade pip pytest cmake scikit-build setuptools fastapi uvicorn sse-starlette pydantic-settings starlette-context
 

@@ -1,0 +1,44 @@
+name: Runtime
+
+on:
+  push:
+    paths:
+      - "runtime/**"
+    branches:
+      - main
+  workflow_dispatch:
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+      - name: Login to ACR
+        uses: docker/login-action@v3
+        with:
+          registry: https://registry.cn-beijing.aliyuncs.com
+          username: "${{ secrets.ACR_USERNAME }}"
+          password: "${{ secrets.ACR_PASSWORD }}"
+      - name: Build and Push Ubuntu
+        run: cd ./runtime/ubuntu && bash run.sh
+      - name: Build and Push Python
+        run: cd ./runtime/python && bash run.sh
+      - name: Build and Push PyPy
+        run: cd ./runtime/pypy && bash run.sh
+      - name: Build and Push Openresty
+        run: cd ./runtime/openresty && bash run.sh
+      - name: Build and Push Nginx
+        run: cd ./runtime/nginx && bash run.sh
+      - name: Build and Push Openjdk
+        run: cd ./runtime/openjdk && bash run.sh
+      - name: Build and Push Node
+        run: cd ./runtime/node && bash run.sh

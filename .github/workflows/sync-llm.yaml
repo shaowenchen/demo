@@ -1,0 +1,31 @@
+name: SyncLLM
+
+on:
+  workflow_dispatch:
+    inputs:
+      repo:
+        description: ""
+        required: true
+        default: "chinese-llama-2-7b-gguf"
+jobs:
+  build:
+    name: Sync Modelscope to Huggingfaceq
+    runs-on: self-hosted
+    steps:
+      - name: Checkout code
+        run: |
+          GIT_LFS_SKIP_SMUDGE=1 git clone https://www.modelscope.cn/shaowenchen/${{ inputs.repo }}.git || true
+      - name: Pull LFS
+        run: |
+          cd ${{ inputs.repo }} && git pull origin master && git lfs pull
+      - name: Configure git
+        run: |
+          git config --global user.email "mail@chenshaowen.com"
+          git config --global user.name "shaowenchen"
+      - name: Push to Huggingface
+        run: |
+          cd ${{ inputs.repo }}
+          git remote add hf https://${{ secrets.HF_USERNAME }}:${{ secrets.HF_PASSWORD }}@huggingface.co/shaowenchen/${{ inputs.repo }}.git || true
+          git pull hf main --allow-unrelated-histories -X ours --no-edit
+          huggingface-cli lfs-enable-largefiles ./
+          git push -f hf master:main
