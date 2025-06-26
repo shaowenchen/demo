@@ -42,7 +42,7 @@ for img in "${images[@]}"; do
 
     for tag_item in $src_tags; do
         src_image="${img}:${tag_item}"
-        
+
         if [[ "$tag_item" == "latest" ]]; then
             dest_image="shaowenchen/demo:${suffix}"
         # 若 tag 中包含 "-latest"（例如 latest-arm64），移除该部分
@@ -50,9 +50,13 @@ for img in "${images[@]}"; do
             # 去掉所有的 -latest 子串
             tag_item_cleaned="${tag_item//-latest/}"
             dest_image="shaowenchen/demo:${suffix}-${tag_item_cleaned}"
+        # 跳过包含 nydus 的 tag
+        elif [[ "$tag_item" == *"-nydus"* ]]; then
+            log "跳过镜像: $src_image（包含 nydus）"
+            continue
         else
             dest_image="shaowenchen/demo:${suffix}-${tag_item}"
-        fi
+
 
         log "复制: $src_image -> $dest_image"
 
