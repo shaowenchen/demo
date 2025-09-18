@@ -4,19 +4,19 @@ on:
   workflow_dispatch:
     inputs:
       dockerfile_path:
-        description: ''
+        description: ""
         required: true
-        default: 'docker/demo/Dockerfile.ubuntu'
+        default: "dockerfile/demo/Dockerfile.3fs"
         type: string
       image_name:
-        description: ''
+        description: ""
         required: true
-        default: 'shaowenchen/demo:ubuntu'
+        default: "shaowenchen/demo:3fs"
         type: string
       platform:
-        description: 'Target platform(s)'
+        description: "Target platform(s)"
         required: false
-        default: 'both'
+        default: "both"
         type: choice
         options:
           - arm64
@@ -43,7 +43,8 @@ jobs:
           PLATFORM="${{ github.event.inputs.platform || 'both' }}"
           IMAGE_NAME="${{ github.event.inputs.image_name }}"
           DOCKERFILE="${{ github.event.inputs.dockerfile_path }}"
-          
+          BUILD_CONTEXT="$(dirname "$DOCKERFILE")"
+
           if [ "$PLATFORM" = "both" ]; then
             # Extract base name without tag
             BASE_NAME=$(echo "$IMAGE_NAME" | cut -d':' -f1)
@@ -54,10 +55,10 @@ jobs:
               --platform=linux/arm64,linux/amd64 \
               -t "$BASE_NAME:$BASE_TAG-arm64" \
               -t "$BASE_NAME:$BASE_TAG-amd64" \
-              -f "$DOCKERFILE" .
+              -f "$DOCKERFILE" "$BUILD_CONTEXT"
           else
             docker buildx build --push \
               --platform="linux/$PLATFORM" \
               -t "$IMAGE_NAME" \
-              -f "$DOCKERFILE" .
+              -f "$DOCKERFILE" "$BUILD_CONTEXT"
           fi
