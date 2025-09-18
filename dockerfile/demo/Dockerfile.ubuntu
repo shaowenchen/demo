@@ -1,4 +1,4 @@
-FROM shaowenchen/runtime-ubuntu:20.04
+FROM shaowenchen/runtime-ubuntu:22.04
 
 RUN apt-get update && \
     apt-get upgrade -y && \
