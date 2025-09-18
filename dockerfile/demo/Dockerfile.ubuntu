@@ -8,6 +8,7 @@ RUN apt-get update && \
     telnet \
     curl \
     mtr \
+    jq \
     dnsutils \
     iproute2 \
     iptables && \

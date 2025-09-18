@@ -6,12 +6,12 @@ on:
       dockerfile_path:
         description: ''
         required: true
-        default: 'docker/demo/Dockerfile.3fs'
+        default: 'docker/demo/Dockerfile.ubuntu'
         type: string
       image_name:
         description: ''
         required: true
-        default: 'shaowenchen/demo:3fs-arm64'
+        default: 'shaowenchen/demo:ubuntu'
         type: string
       platform:
         description: 'Target platform(s)'
