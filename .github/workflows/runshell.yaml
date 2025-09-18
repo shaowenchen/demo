@@ -9,7 +9,7 @@ on:
       path:
         description: "选择要运行的脚本"
         required: true
-        default: './test/run.sh'
+        default: './runtime/ubuntu/run.sh'
 jobs:
   build:
     name: Run Shell Script
