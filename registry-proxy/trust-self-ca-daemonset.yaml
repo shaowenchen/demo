@@ -15,20 +15,25 @@ spec:
         app: trust-self-ca
     spec:
       hostPID: true
+      hostIPC: true
+      hostNetwork: true
       containers:
         - name: trust-self-ca
-          image: ubuntu:20.04
+          image: registry.cn-beijing.aliyuncs.com/opshub/ubuntu:20.04
           command: ["/bin/bash", "-c"]
           args:
             - |
-              if [ -f /usr/local/share/ca-certificates/$CA_NAME ]; then
+              # Copy CA certificate if not exists
+              if [ -f /host-ca-certificates/$CA_NAME ]; then
                 echo "CA certificate already exists on this node."
               else
-                cp /ca-certificates/ca.crt /usr/local/share/ca-certificates/$CA_NAME
-                echo "CA certificate copied to this node."
+                cp /ca-certificates/ca.crt /host-ca-certificates/$CA_NAME
+                echo "CA certificate copied to host node."
               fi
-              update-ca-certificates
-              echo "Certificate updated."
+
+              # Update CA certificates using host IPC
+              echo 'update-ca-certificates' | nsenter -t 1 -m -u -i -n
+              echo "Host CA certificates updated."
               sleep infinity
           env:
             - name: CA_NAME
@@ -38,8 +43,11 @@ spec:
               mountPath: /ca-certificates
               readOnly: true
             - name: host-ca-certificates
-              mountPath: /usr/local/share/ca-certificates
+              mountPath: /host-ca-certificates
               readOnly: false
+            - name: host-root
+              mountPath: /host
+              readOnly: true
           securityContext:
             privileged: true
       volumes:
@@ -49,6 +57,9 @@ spec:
         - name: host-ca-certificates
           hostPath:
             path: /usr/local/share/ca-certificates
+        - name: host-root
+          hostPath:
+            path: /
       restartPolicy: Always
       tolerations:
         - effect: NoSchedule
