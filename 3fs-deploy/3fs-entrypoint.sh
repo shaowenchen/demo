@@ -32,7 +32,11 @@ run_mgmtd() {
         sed -i "s|device_filter = \[\]|device_filter = [\"${DEVICE_FILTER//,/\",\"}\"]|g" /opt/3fs/etc/mgmtd_main_launcher.toml
     fi
     # run mgmtd
-    /opt/3fs/bin/mgmtd_main --launcher_cfg /opt/3fs/etc/mgmtd_main_launcher.toml --app-cfg /opt/3fs/etc/mgmtd_main_app.toml
+    # if MGMTD_SERVER_ADDRESSES is prefix IPoIB, set network_type = 'RDMA' to 'IPoIB' in /opt/3fs/etc/mgmtd_main.toml
+    if [[ "${MGMTD_SERVER_ADDRESSES}" == *"IPoIB"* ]]; then
+        sed -i "s|network_type = 'RDMA'|network_type = 'IPoIB'|g" /opt/3fs/etc/mgmtd_main.toml
+    fi
+    /opt/3fs/bin/mgmtd_main --launcher_cfg /opt/3fs/etc/mgmtd_main_launcher.toml --app-cfg /opt/3fs/etc/mgmtd_main_app.toml --cfg /opt/3fs/etc/mgmtd_main.toml
 }
 
 run_meta() {
