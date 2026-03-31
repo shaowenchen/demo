@@ -64,7 +64,7 @@ class OpenClawCallHandler(BaseHTTPRequestHandler):
                 args,
                 capture_output=True,
                 text=True,
-                timeout=180,
+                timeout=3600,
                 check=False,
             )
         except Exception as err:
