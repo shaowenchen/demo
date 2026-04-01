@@ -1,13 +1,22 @@
 import json
 import os
-import shlex
 import subprocess
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 
 PORT = int(os.getenv("PORT", "3010"))
 NERDCTL_CMD = os.getenv("NERDCTL_CMD", "nerdctl").strip() or "nerdctl"
 OPENCLAW_CONTAINER = os.getenv("OPENCLAW_CONTAINER", "openclaw").strip() or "openclaw"
+
+
+def shell_double_quoted(s: str) -> str:
+    return '"' + s.replace("\\", "\\\\").replace('"', '\\"') + '"'
+
+
+def shell_arg_display(s: str) -> str:
+    if any(c in s for c in ' \t\n"$`\\'):
+        return shell_double_quoted(s)
+    return s
 
 
 def write_json(handler: BaseHTTPRequestHandler, status: int, payload: dict) -> None:
@@ -53,7 +62,18 @@ class OpenClawCallHandler(BaseHTTPRequestHandler):
         if sessionid:
             args.extend(["--session-id", sessionid])
         args.extend(["--message", message])
-        command_str = " ".join(shlex.quote(x) for x in args)
+
+        command_parts = [
+            shell_arg_display(NERDCTL_CMD),
+            "exec",
+            shell_arg_display(OPENCLAW_CONTAINER),
+            "openclaw",
+            "agent",
+        ]
+        if sessionid:
+            command_parts.extend(["--session-id", shell_double_quoted(sessionid)])
+        command_parts.extend(["--message", shell_double_quoted(message)])
+        command_str = " ".join(command_parts)
 
         try:
             completed = subprocess.run(
@@ -98,6 +118,7 @@ class OpenClawCallHandler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    server = HTTPServer(("0.0.0.0", PORT), OpenClawCallHandler)
+    server = ThreadingHTTPServer(("0.0.0.0", PORT), OpenClawCallHandler)
+    server.daemon_threads = True
     print(f"openclaw-call listening on http://0.0.0.0:{PORT}")
     server.serve_forever()
