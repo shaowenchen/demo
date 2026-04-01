@@ -6,7 +6,6 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 
 
 PORT = int(os.getenv("PORT", "3010"))
-DEFAULT_AGENT = os.getenv("OPENCLAW_DEFAULT_AGENT", "main").strip() or "main"
 NERDCTL_CMD = os.getenv("NERDCTL_CMD", "nerdctl").strip() or "nerdctl"
 OPENCLAW_CONTAINER = os.getenv("OPENCLAW_CONTAINER", "openclaw").strip() or "openclaw"
 
@@ -34,14 +33,13 @@ class OpenClawCallHandler(BaseHTTPRequestHandler):
             write_json(self, 400, {"ok": False, "error": "invalid json body"})
             return
 
-        agent = str(data.get("agent", "")).strip() or DEFAULT_AGENT
         sessionid = str(data.get("sessionid", "")).strip()
         message = str(data.get("message", "")).strip()
         if not message:
             write_json(
                 self,
                 400,
-                {"ok": False, "agent": agent, "error": "message is required and must be non-empty"},
+                {"ok": False, "error": "message is required and must be non-empty"},
             )
             return
 
@@ -51,8 +49,6 @@ class OpenClawCallHandler(BaseHTTPRequestHandler):
             OPENCLAW_CONTAINER,
             "openclaw",
             "agent",
-            "--agent",
-            agent,
         ]
         if sessionid:
             args.extend(["--session-id", sessionid])
@@ -73,7 +69,6 @@ class OpenClawCallHandler(BaseHTTPRequestHandler):
                 500,
                 {
                     "ok": False,
-                    "agent": agent,
                     "message": message,
                     "command": command_str,
                     "error": f"failed to execute {NERDCTL_CMD}: {err}",
@@ -87,7 +82,6 @@ class OpenClawCallHandler(BaseHTTPRequestHandler):
             200 if success else 500,
             {
                 "ok": success,
-                "agent": agent,
                 "sessionid": sessionid,
                 "message": message,
                 "command": command_str,
