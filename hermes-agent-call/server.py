@@ -21,17 +21,17 @@ def shell_arg_display(s: str) -> str:
     return s
 
 
-def write_text(handler: BaseHTTPRequestHandler, status: int, body: str) -> None:
-    raw = body.encode("utf-8")
+def write_json(handler: BaseHTTPRequestHandler, status: int, payload: dict) -> None:
+    raw = json.dumps(payload, ensure_ascii=False).encode("utf-8")
     handler.send_response(status)
-    handler.send_header("Content-Type", "text/plain; charset=utf-8")
+    handler.send_header("Content-Type", "application/json; charset=utf-8")
     handler.send_header("Content-Length", str(len(raw)))
     handler.end_headers()
     handler.wfile.write(raw)
 
 
 def extract_hermes_reply(stdout: str) -> str:
-    """Strip TUI chrome and return the assistant message inside the ⚕ Hermes panel."""
+    """Strip TUI chrome; return text inside the ⚕ Hermes panel."""
     lines = (stdout or "").splitlines()
     in_panel = False
     content: list[str] = []
@@ -54,7 +54,7 @@ def extract_hermes_reply(stdout: str) -> str:
 class HermesCallHandler(BaseHTTPRequestHandler):
     def do_POST(self) -> None:
         if self.path != "/call":
-            write_text(self, 404, "not found")
+            write_json(self, 404, {"ok": False, "error": "not found"})
             return
 
         content_length = self.headers.get("Content-Length", "0")
@@ -62,12 +62,17 @@ class HermesCallHandler(BaseHTTPRequestHandler):
             body_bytes = self.rfile.read(int(content_length))
             data = json.loads(body_bytes.decode("utf-8") if body_bytes else "{}")
         except Exception:
-            write_text(self, 400, "invalid json body")
+            write_json(self, 400, {"ok": False, "error": "invalid json body"})
             return
 
+        sessionid = str(data.get("sessionid", "")).strip()
         message = str(data.get("message", "")).strip()
         if not message:
-            write_text(self, 400, "message is required and must be non-empty")
+            write_json(
+                self,
+                400,
+                {"ok": False, "error": "message is required and must be non-empty"},
+            )
             return
 
         args = [
@@ -100,24 +105,33 @@ class HermesCallHandler(BaseHTTPRequestHandler):
                 check=False,
             )
         except Exception as err:
-            write_text(
+            write_json(
                 self,
                 500,
-                f"failed to execute {NERDCTL_CMD}: {err}\n{command_str}",
+                {
+                    "ok": False,
+                    "message": message,
+                    "command": command_str,
+                    "error": f"failed to execute {NERDCTL_CMD}: {err}",
+                },
             )
             return
 
-        if completed.returncode != 0:
-            err_tail = (completed.stderr or completed.stdout or "").strip()
-            write_text(
-                self,
-                500,
-                err_tail or f"hermes exited with {completed.returncode}\n{command_str}",
-            )
-            return
-
-        reply = extract_hermes_reply(completed.stdout or "")
-        write_text(self, 200, reply)
+        success = completed.returncode == 0
+        write_json(
+            self,
+            200 if success else 500,
+            {
+                "ok": success,
+                "sessionid": sessionid,
+                "message": message,
+                "command": command_str,
+                "exitCode": completed.returncode,
+                "stdout": extract_hermes_reply(completed.stdout or ""),
+                "stderr": (completed.stderr or "").strip(),
+                **({} if success else {"error": "hermes command failed"}),
+            },
+        )
 
     def log_message(self, _format: str, *_args) -> None:
         return
