@@ -1,2 +1,3 @@
 3fs-fluid/bin/hf3fs_fuse_main
 train/mnist/mymnistnet_weight.pth
+**/__pycache__

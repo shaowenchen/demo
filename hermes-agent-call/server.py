@@ -30,23 +30,50 @@ def write_json(handler: BaseHTTPRequestHandler, status: int, payload: dict) -> N
     handler.wfile.write(raw)
 
 
-def extract_hermes_reply(stdout: str) -> str:
-    """Strip TUI chrome; return text inside the ⚕ Hermes panel."""
-    lines = (stdout or "").splitlines()
-    in_panel = False
-    content: list[str] = []
-    for line in lines:
-        if not in_panel:
-            if "⚕" in line and "Hermes" in line and "╭" in line:
-                in_panel = True
+def _is_horizontal_rule(line: str) -> bool:
+    """Bottom border of the new Hermes panel (mostly ─ / box-drawing, no text)."""
+    t = line.strip()
+    if len(t) < 20:
+        return False
+    if any(c.isalnum() for c in t):
+        return False
+    if any("\u4e00" <= c <= "\u9fff" for c in t):
+        return False
+    for c in t:
+        if c.isspace():
             continue
-        if line.strip().startswith("╰"):
+        if c in "─－━—‐-‒":
+            continue
+        o = ord(c)
+        if 0x2500 <= o <= 0x257F:
+            continue
+        return False
+    non_space = [c for c in t if not c.isspace()]
+    return len(non_space) >= 10
+
+
+def extract_hermes_reply(stdout: str) -> str:
+    """Strip TUI chrome; return text inside the ⚕ Hermes panel (old ╭/╰ or new ─ layout)."""
+    lines = (stdout or "").splitlines()
+    start = -1
+    for i, line in enumerate(lines):
+        if "⚕" in line and "Hermes" in line:
+            start = i
             break
-        if "╭" in line and content:
+    if start < 0:
+        return (stdout or "").strip()
+
+    content: list[str] = []
+    for line in lines[start + 1 :]:
+        s = line.strip()
+        if s.startswith("╰"):
+            break
+        if _is_horizontal_rule(line):
             break
         stripped = re.sub(r"^[│\s]+", "", line).strip()
-        if stripped and not stripped.startswith("╭"):
-            content.append(stripped)
+        if not stripped or stripped.startswith("╭"):
+            continue
+        content.append(stripped)
     text = "\n".join(content).strip()
     return text if text else (stdout or "").strip()
 
@@ -81,6 +108,8 @@ class HermesCallHandler(BaseHTTPRequestHandler):
             HERMES_AGENT_CONTAINER,
             HERMES_BIN,
             "chat",
+            "--yolo",
+            "-c",
             "-q",
             message,
         ]
@@ -91,6 +120,8 @@ class HermesCallHandler(BaseHTTPRequestHandler):
             shell_arg_display(HERMES_AGENT_CONTAINER),
             shell_arg_display(HERMES_BIN),
             "chat",
+            "--yolo",
+            "-c",
             "-q",
             shell_double_quoted(message),
         ]
