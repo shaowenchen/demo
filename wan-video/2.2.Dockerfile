@@ -44,7 +44,7 @@ RUN pip install \
     imageio-ffmpeg \
     "numpy>=1.23.5,<2"
 
-RUN pip install flash_attn
+RUN pip install --no-build-isolation flash_attn
 
 RUN pip install \
     openai-whisper \
