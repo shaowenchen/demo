@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y \
     wget \
     curl \
     build-essential \
+    ninja-build \
     pkg-config \
     ffmpeg \
     libsm6 \
@@ -73,7 +74,7 @@ RUN pip install \
     loguru \
     sentencepiece
 
-RUN pip install -e git+https://github.com/facebookresearch/sam2.git@0e78a118995e66bb27d78518c4bd9a3e95b4e266#egg=SAM-2
+RUN pip install --no-build-isolation -e git+https://github.com/facebookresearch/sam2.git@0e78a118995e66bb27d78518c4bd9a3e95b4e266#egg=SAM-2
 
 RUN mkdir -p /app/models
 
