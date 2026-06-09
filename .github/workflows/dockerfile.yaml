@@ -75,7 +75,10 @@ jobs:
 
           dockerhub_image="$image"
           acr_source_image="${image#docker.io/}"
-          acr_image="${ACR_IMAGE_NAME:-registry.cn-beijing.aliyuncs.com/${acr_source_image}}"
+          acr_repository="${acr_source_image%%:*}"
+          acr_tag="${acr_source_image#*:}"
+          acr_repository="${acr_repository//\//-}"
+          acr_image="${ACR_IMAGE_NAME:-registry.cn-beijing.aliyuncs.com/opshub/${acr_repository}:${acr_tag}}"
 
           {
             echo "tags<<EOF"
