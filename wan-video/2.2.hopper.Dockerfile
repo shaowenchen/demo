@@ -1,5 +1,5 @@
-# shaowenchen/demo:wan-video-2.2
-FROM nvidia/cuda:12.8.0-devel-ubuntu22.04
+# shaowenchen/demo:wan-video-2.2-hopper
+FROM nvidia/cuda:12.4.0-devel-ubuntu22.04
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1 \
@@ -31,10 +31,10 @@ RUN git clone https://github.com/Wan-Video/Wan2.2.git . && \
     git checkout main
 
 RUN pip install --no-cache-dir \
-    "torch==2.7.1" \
-    "torchvision==0.22.1" \
-    "torchaudio==2.7.1" \
-    --index-url https://download.pytorch.org/whl/cu128
+    "torch==2.5.1" \
+    "torchvision==0.20.1" \
+    "torchaudio==2.5.1" \
+    --index-url https://download.pytorch.org/whl/cu124
 
 RUN pip install \
     "opencv-python>=4.9.0.80" \
@@ -49,7 +49,7 @@ RUN pip install \
     imageio-ffmpeg \
     "numpy>=1.23.5,<2"
 
-ENV TORCH_CUDA_ARCH_LIST="8.0;8.6;8.9;9.0;12.0"
+ENV TORCH_CUDA_ARCH_LIST="9.0"
 RUN pip install --no-cache-dir --no-build-isolation "flash-attn==2.7.4.post1"
 
 RUN pip install \

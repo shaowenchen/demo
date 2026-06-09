@@ -6,7 +6,7 @@ on:
       dockerfile_path:
         description: "Path to the Dockerfile"
         required: true
-        default: "wan-video/2.2.Dockerfile"
+        default: "wan-video/2.2.blackwell.Dockerfile"
         type: string
       image_name:
         description: "DockerHub image name and tag. Uses the Dockerfile first line when empty."
@@ -58,7 +58,7 @@ jobs:
       - name: Resolve image tags
         id: image
         env:
-          DOCKERFILE_PATH: ${{ github.event.inputs.dockerfile_path || 'wan-video/2.2.Dockerfile' }}
+          DOCKERFILE_PATH: ${{ github.event.inputs.dockerfile_path || 'wan-video/2.2.blackwell.Dockerfile' }}
           IMAGE_NAME: ${{ github.event.inputs.image_name }}
           PUSH_ACR: ${{ github.event.inputs.push_acr || 'false' }}
           ACR_IMAGE_NAME: ${{ github.event.inputs.acr_image_name }}
