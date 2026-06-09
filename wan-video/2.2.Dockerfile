@@ -30,7 +30,11 @@ WORKDIR /app
 RUN git clone https://github.com/Wan-Video/Wan2.2.git . && \
     git checkout main
 
-RUN pip install "torch>=2.4.0" "torchvision>=0.19.0" torchaudio --index-url https://download.pytorch.org/whl/cu124
+RUN pip install --no-cache-dir \
+    "torch==2.5.1" \
+    "torchvision==0.20.1" \
+    "torchaudio==2.5.1" \
+    --index-url https://download.pytorch.org/whl/cu124
 
 RUN pip install \
     "opencv-python>=4.9.0.80" \
@@ -45,7 +49,7 @@ RUN pip install \
     imageio-ffmpeg \
     "numpy>=1.23.5,<2"
 
-RUN pip install --no-build-isolation flash_attn
+RUN pip install --no-cache-dir --no-build-isolation "flash-attn==2.7.4.post1"
 
 RUN pip install \
     openai-whisper \
