@@ -70,7 +70,8 @@ RUN pip install \
     librosa \
     decord \
     modelscope \
-    GitPython
+    GitPython \
+    imageio
 
 RUN pip install \
     peft \
