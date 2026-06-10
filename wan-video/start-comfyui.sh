@@ -9,7 +9,7 @@ mkdir -p \
   "${COMFYUI_USER_DIR:-${COMFYUI_DATA_DIR}/user}"
 
 cd /comfyui
-exec python main.py \
+exec python3 main.py \
   --listen 0.0.0.0 \
   --port "${COMFYUI_PORT:-8188}" \
   --enable-manager \
