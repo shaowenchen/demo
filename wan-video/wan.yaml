@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: my-wan
+  name: my-wan
+  namespace: ops-system
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: my-wan
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: my-wan
+    spec:
+      containers:
+      - env:
+        - name: COMFYUI_PORT
+          value: "8188"
+        image: shaowenchen/demo:wan-video-2.2-hopper
+        imagePullPolicy: Always
+        name: my-wan
+        ports:
+        - containerPort: 8188
+          name: http
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        resources:
+          requests:
+            cpu: "2"
+            memory: 4Gi
+        securityContext:
+          privileged: true
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /data
+          name: nfs-volume
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: nfs-volume
+        nfs:
+          path: /data/nfs
+          server: 0.0.0.0
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: my-wan
+  name: my-wan
+  namespace: ops-system
+spec:
+  ports:
+  - name: http
+    port: 8188
+    protocol: TCP
+    targetPort: http
+  selector:
+    app: my-wan
+  type: ClusterIP

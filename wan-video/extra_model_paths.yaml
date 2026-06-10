@@ -1,0 +1,8 @@
+# Shared model directories for Wan and ComfyUI.
+studio_models:
+  base_path: /data/.studio/models
+  is_default: true
+  diffusion_models: .
+  text_encoders: .
+  vae: .
+  checkpoints: .

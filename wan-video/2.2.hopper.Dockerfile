@@ -21,6 +21,8 @@ RUN apt-get update && apt-get install -y \
     libxext6 \
     libxrender-dev \
     libgomp1 \
+    libgl1 \
+    libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip install --upgrade pip setuptools wheel
@@ -80,6 +82,20 @@ RUN pip install \
     loguru \
     sentencepiece
 
-RUN mkdir -p /app/models
+RUN git clone https://github.com/comfy-org/ComfyUI.git /comfyui && \
+    grep -vE '^(torch|torchvision|torchaudio)([<>=!]|$)' /comfyui/requirements.txt > /tmp/comfyui-requirements.txt && \
+    pip install --no-cache-dir -r /tmp/comfyui-requirements.txt && \
+    pip install --no-cache-dir -r /comfyui/manager_requirements.txt && \
+    pip install --no-cache-dir "transformers>=4.50.3,<=4.51.3"
 
-CMD ["/bin/bash"]
+COPY extra_model_paths.yaml /comfyui/extra_model_paths.yaml
+COPY start-comfyui.sh /usr/local/bin/start-comfyui.sh
+RUN chmod +x /usr/local/bin/start-comfyui.sh
+
+RUN mkdir -p /data/.studio/models /data/.studio/comfyui/input /data/.studio/comfyui/output /data/.studio/comfyui/user && \
+    rm -rf /comfyui/models && \
+    ln -s /data/.studio/models /comfyui/models
+
+EXPOSE 8188
+
+CMD ["/usr/local/bin/start-comfyui.sh"]
