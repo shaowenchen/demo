@@ -1,4 +1,5 @@
 # shaowenchen/demo:juicefs-fdb-7.4.6
+# https://github.com/apple/foundationdb/releases/download/7.4.6/foundationdb-clients_7.4.6-1_amd64.deb
 FROM golang:1.25-bookworm AS builder
 
 ARG TARGETARCH
@@ -42,5 +43,4 @@ ENV PATH="/opt/juicefs/bin:${PATH}"
 
 RUN ln -sf /opt/juicefs/bin/juicefs /bin/mount.juicefs
 
-ENTRYPOINT ["/opt/juicefs/bin/juicefs"]
-CMD ["--help"]
+ENTRYPOINT ["sleep", "infinity"]
