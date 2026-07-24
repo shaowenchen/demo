@@ -14,12 +14,57 @@ spec:
       nodeSelector:
         hccl-test: "true"
       hostNetwork: true
+      hostIPC: true
+      dnsPolicy: ClusterFirstWithHostNet
       containers:
       - name: hccl-test
-        image: shaowenchen/demo:hccl-test-8.0.RC2-ubuntu22.04
-        imagePullPolicy: IfNotPresent
+        image: registry.cn-beijing.aliyuncs.com/opshub/shaowenchen-demo:hccl-test-8.0.RC2-ubuntu22.04
+        imagePullPolicy: Always
         env:
         - name: SSH_PORT
           value: "8822"
         securityContext:
           privileged: true
+        volumeMounts:
+        - name: dev
+          mountPath: /dev
+        - name: dshm
+          mountPath: /dev/shm
+        - name: ascend-driver
+          mountPath: /usr/local/Ascend/driver
+        - name: ascend-add-ons
+          mountPath: /usr/local/Ascend/add-ons
+        - name: npu-smi
+          mountPath: /usr/local/sbin/npu-smi
+        - name: hccn-conf
+          mountPath: /etc/hccn.conf
+          readOnly: true
+        - name: localtime
+          mountPath: /etc/localtime
+          readOnly: true
+      volumes:
+      - name: dev
+        hostPath:
+          path: /dev
+      - name: dshm
+        emptyDir:
+          medium: Memory
+          sizeLimit: 64Gi
+      - name: ascend-driver
+        hostPath:
+          path: /usr/local/Ascend/driver
+      - name: ascend-add-ons
+        hostPath:
+          path: /usr/local/Ascend/add-ons
+      - name: npu-smi
+        hostPath:
+          path: /usr/local/sbin/npu-smi
+          type: File
+      - name: hccn-conf
+        hostPath:
+          path: /etc/hccn.conf
+          type: FileOrCreate
+      - name: localtime
+        hostPath:
+          path: /etc/localtime
+          type: File
