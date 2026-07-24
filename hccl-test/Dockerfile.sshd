@@ -17,9 +17,8 @@ COPY start-sshd.sh /usr/local/bin/start-sshd.sh
 RUN chmod 700 /root/.ssh && \
     chmod 600 /root/.ssh/id_rsa /root/.ssh/authorized_keys && \
     chmod 644 /root/.ssh/id_rsa.pub && \
-    chmod +x /usr/local/bin/start-sshd.sh && \
-    printf 'Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile /dev/null\n' > /root/.ssh/config && \
-    chmod 600 /root/.ssh/config
+    chmod +x /usr/local/bin/start-sshd.sh
 
-EXPOSE 22
+ENV SSH_PORT=8822
+EXPOSE 8822
 ENTRYPOINT ["/usr/local/bin/start-sshd.sh"]

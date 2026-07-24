@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: hccl-test
-  namespace: ops-system
 spec:
   selector:
     matchLabels:
@@ -18,6 +17,9 @@ spec:
       containers:
       - name: hccl-test
         image: shaowenchen/demo:hccl-test-8.0.RC2-ubuntu22.04
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: SSH_PORT
+          value: "8822"
         securityContext:
           privileged: true
