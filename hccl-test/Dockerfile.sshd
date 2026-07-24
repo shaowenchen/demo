@@ -1,0 +1,25 @@
+# shaowenchen/demo:hccl-test-8.0.RC2-ubuntu22.04
+FROM shaowenchen/hccl-test:8.0.RC2-ubuntu22.04
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    openssh-client \
+    openssh-server \
+    procps && \
+  mkdir -p /var/run/sshd /root/.ssh && \
+  apt-get clean && rm -rf /var/lib/apt/lists/*
+
+COPY id_rsa /root/.ssh/id_rsa
+COPY id_rsa.pub /root/.ssh/id_rsa.pub
+COPY id_rsa.pub /root/.ssh/authorized_keys
+COPY sshd_config /etc/ssh/sshd_config
+COPY start-sshd.sh /usr/local/bin/start-sshd.sh
+
+RUN chmod 700 /root/.ssh && \
+    chmod 600 /root/.ssh/id_rsa /root/.ssh/authorized_keys && \
+    chmod 644 /root/.ssh/id_rsa.pub && \
+    chmod +x /usr/local/bin/start-sshd.sh && \
+    printf 'Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile /dev/null\n' > /root/.ssh/config && \
+    chmod 600 /root/.ssh/config
+
+EXPOSE 22
+ENTRYPOINT ["/usr/local/bin/start-sshd.sh"]

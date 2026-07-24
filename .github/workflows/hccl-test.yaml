@@ -1,0 +1,59 @@
+name: Build HCCL Test SSHD
+
+on:
+  workflow_dispatch:
+    inputs:
+      platforms:
+        description: "Comma-separated platforms"
+        required: false
+        default: "linux/amd64"
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Login to ACR
+        uses: docker/login-action@v3
+        with:
+          registry: registry.cn-beijing.aliyuncs.com
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push hccl-test-sshd
+        uses: docker/build-push-action@v6
+        with:
+          context: ./hccl-test
+          file: ./hccl-test/Dockerfile.sshd
+          push: true
+          platforms: ${{ github.event.inputs.platforms || 'linux/amd64' }}
+          tags: |
+            shaowenchen/demo:hccl-test-8.0.RC2-ubuntu22.04
+            registry.cn-beijing.aliyuncs.com/opshub/shaowenchen-demo:hccl-test-8.0.RC2-ubuntu22.04
+
+      - name: Summary
+        env:
+          PLATFORMS: ${{ github.event.inputs.platforms || 'linux/amd64' }}
+        run: |
+          {
+            echo "### HCCL Test SSHD build"
+            echo ""
+            echo "- DockerHub: \`shaowenchen/demo:hccl-test-8.0.RC2-ubuntu22.04\`"
+            echo "- ACR: \`registry.cn-beijing.aliyuncs.com/opshub/shaowenchen-demo:hccl-test-8.0.RC2-ubuntu22.04\`"
+            echo "- Base image: \`shaowenchen/hccl-test:8.0.RC2-ubuntu22.04\`"
+            echo "- Platforms: \`${PLATFORMS}\`"
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: hccl-test
+  namespace: ops-system
+spec:
+  selector:
+    matchLabels:
+      app: hccl-test
+  template:
+    metadata:
+      labels:
+        app: hccl-test
+    spec:
+      nodeSelector:
+        hccl-test: "true"
+      hostNetwork: true
+      containers:
+      - name: hccl-test
+        image: shaowenchen/demo:hccl-test-8.0.RC2-ubuntu22.04
+        imagePullPolicy: Always
+        securityContext:
+          privileged: true
