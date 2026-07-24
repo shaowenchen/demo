@@ -25,6 +25,13 @@ spec:
           value: "8822"
         securityContext:
           privileged: true
+        resources:
+          limits:
+            cpu: "100"
+            memory: 500Gi
+          requests:
+            cpu: "100"
+            memory: 500Gi
         volumeMounts:
         - name: dev
           mountPath: /dev
